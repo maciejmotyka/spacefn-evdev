@@ -14,16 +14,13 @@
 // Key mapping {{{1
 unsigned int key_map(unsigned int code) {
     switch (code) {
-        case KEY_BRIGHTNESSDOWN:    // my magical escape button
-            exit(0);
-
-        case KEY_J:
+        case KEY_H:
             return KEY_LEFT;
-        case KEY_K:
+        case KEY_J:
             return KEY_DOWN;
-        case KEY_L:
+        case KEY_K:
             return KEY_UP;
-        case KEY_SEMICOLON:
+        case KEY_L:
             return KEY_RIGHT;
 
         case KEY_M:
@@ -37,9 +34,41 @@ unsigned int key_map(unsigned int code) {
 
         case KEY_B:
             return KEY_SPACE;
+	    case KEY_F:
+	        return KEY_BACKSPACE;
+	    case KEY_D:
+	        return KEY_DELETE;
+	    case KEY_S:
+	        return KEY_ESC;
+
+        case KEY_Q:
+            return KEY_1;
+        case KEY_W:
+            return KEY_2;
+        case KEY_E:
+            return KEY_3;
+        case KEY_R:
+            return KEY_4;
+        case KEY_T:
+            return KEY_5;
+        case KEY_Y:
+            return KEY_6;
+        case KEY_U:
+            return KEY_7;
+        case KEY_I:
+            return KEY_8;
+        case KEY_O:
+            return KEY_9;
+        case KEY_P:
+            return KEY_0;
+        case KEY_LEFTBRACE:
+            return KEY_MINUS;
+        case KEY_RIGHTBRACE:
+            return KEY_EQUAL;
     }
     return 0;
 }
+
 
 // Blacklist keys for which I have a mapping, to try and train myself out of using them
 int blacklist(unsigned int code) {
@@ -52,6 +81,8 @@ int blacklist(unsigned int code) {
         case KEY_END:
         case KEY_PAGEUP:
         case KEY_PAGEDOWN:
+        case KEY_BACKSPACE:
+        case KEY_DELETE:
             return 1;
     }
     return 0;
@@ -123,8 +154,10 @@ static int read_one_key(struct input_event *ev) {
         exit(1);
     }
 
-    if (ev->type != EV_KEY)
+    if (ev->type != EV_KEY) {
+        libevdev_uinput_write_event(odev, ev->type, ev->code, ev->value);
         return -1;
+    }
 
     if (blacklist(ev->code))
         return -1;
@@ -164,7 +197,7 @@ static void state_decide(void) {    // {{{2
 
     while (timeout.tv_usec >= 0) {
         FD_SET(fd, &set);
-        int nfds = select(fd+1, &set, NULL, &set, &timeout);
+        int nfds = select(fd+1, &set, NULL, NULL, &timeout);
         if (!nfds)
             break;
 
